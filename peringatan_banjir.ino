@@ -1,22 +1,26 @@
 /************************************
  * Program : Sistem peringatan banjir
  * Input   : Sensor Ultrasonic HC-SR04
- * Output  : LCD 2x16
+ * Output  : LCD 2x16 
  * ***********************************/
 #include <NewPing.h>
 #include <LiquidCrystal_I2C.h>
+#include <SoftwareSerial.h>
+SoftwareSerial mySerial(2,3);
+String data;
+char c;
 
 #define MAX_DISTANCE 200
 #define trigPin 8
 #define echoPin 7
 NewPing sonar(trigPin, echoPin, MAX_DISTANCE);
-LiquidCrystal_I2C lcd(0x27,16,2);
+LiquidCrystal_I2C lcd(0x3F,16,2);
 String inString="";
-char f1,f2,f3;
-unsigned int Status;
 
 void setup() {
   Serial.begin(9600);
+  mySerial.begin(9600);
+  Serial.print("Tes Koneksi...");
   lcd.begin();
   lcd.print("Tes Koneksi...");
   delay(1000);  
@@ -38,53 +42,84 @@ void loop() {
   int jarak;
   unsigned int uS = sonar.ping();
   jarak=uS / US_ROUNDTRIP_CM;
-  lcd.setCursor(0,0);
-  lcd.print("Jarak air:");  
-  lcd.setCursor(0,1);
-  lcd.print("Status=");  
-  lcd.setCursor(10,0);
-  lcd.print(jarak);
-  lcd.print("cm  ");
-  if (jarak > 100) {
-     lcd.setCursor(7,1);
+  
+  while(mySerial.available()>0){
+    delay(10);
+    c = mySerial.read();
+    data += c;
+  }  
+  if (data.length()>0) {
+    Serial.println(data);
+    if (data == "STATUS"){
+      if (jarak > 30) {
+        mySerial.print("Jarak Air : "); 
+        mySerial.print(jarak);
+        mySerial.print(" cm, Status AMAN");
+        delay(500);
+      }
+      else if ((jarak > 20)&&(jarak <= 30)){
+        mySerial.print("Jarak Air : "); 
+        mySerial.print(jarak);
+        mySerial.print(" cm, Status WASPADA");
+        delay(500);
+      }
+      else if ((jarak > 10)&&(jarak <= 20)){
+        mySerial.print("Jarak Air : "); 
+        mySerial.print(jarak);
+        mySerial.print(" cm, Status AWAS");
+        delay(500);
+      }       
+      else if (jarak <= 10 && jarak != 0){
+//        mySerial.print("Jarak Air : "+jarak+" cm\nStatus : Bahaya");
+        mySerial.print("Jarak Air : "); 
+        mySerial.print(jarak);
+        mySerial.print(" cm, Status BAHAYA");
+        delay(500);
+      }
+      else{
+        mySerial.print("Ulangi Lagi");
+        delay(100);
+      }
+    }
+    data = "";
+  }
+  
+//   lcd.clear();
+   lcd.setCursor(0,0);
+   lcd.print("Jarak air: ");  
+   lcd.setCursor(0,1);
+   lcd.print("Status: ");  
+   lcd.setCursor(11,0);
+   lcd.print(jarak);
+   lcd.print("cm  ");
+  if (jarak > 30) {
+    delay(100);
+     lcd.setCursor(8,1);
      lcd.print("Aman    ");
-     Status=1;
-     if (f1==1){
-       f1=0;
-       f2=0;
-       f3=0;
-     }
   }
-  else if ((jarak < 90) && (jarak > 75)){
-  lcd.setCursor(7,1);
-  lcd.print("Waspada ");
-    if (f1==0){
-      Status=2;
-
-    }
-  f1=1;  
-  f2=0;
-  f3=0;
+  else if ((jarak > 20)&&(jarak <= 30)){
+    delay(100);
+     lcd.setCursor(8,1);
+     lcd.print("Waspada ");
   }
-  else if ((jarak < 65) && (jarak > 50)){
-  lcd.setCursor(7,1);
-  lcd.print("Awas!   ");  
-    if (f2==0){
-      Status=3;
-    }
-  f1=0;
-  f2=1;
-  f3=0;
+  else if ((jarak > 10)&&(jarak <= 20)){
+    delay(100);
+     lcd.setCursor(8,1);
+     lcd.print("Awas!   ");  
+     mySerial.print("AWAS");
+     delay(3000);
   }       
-  else if (jarak < 40){
-  lcd.setCursor(7,1);
-  lcd.print("Bahaya!!");  
-    if (f3==0){
-      Status=4;
-    } 
-  f1=0;
-  f2=0;
-  f3=1;
+  else if (jarak <= 10 && jarak != 0){
+    delay(100);
+     lcd.setCursor(8,1);
+     lcd.print("Bahaya!");
+     mySerial.print("BAHAYA");
+     delay(3000);
   }
-  delay(4000);
+  else {
+    delay(100);
+     lcd.setCursor(8,1);
+     lcd.print("Mencari");
+  }
+  delay(1000);
 }
