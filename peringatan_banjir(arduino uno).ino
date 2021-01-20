@@ -1,4 +1,4 @@
-/************************************
+ /************************************
  * Program : Sistem peringatan banjir
  * Input   : Sensor Ultrasonic HC-SR04
  * Output  : LCD 2x16 
@@ -18,9 +18,9 @@ LiquidCrystal_I2C lcd(0x3F,16,2);
 String inString="";
 
 void setup() {
-  Serial.begin(9600);
+//  Serial.begin(9600);
   mySerial.begin(9600);
-  Serial.print("Tes Koneksi...");
+//  Serial.print("Tes Koneksi...");
   lcd.begin();
   lcd.print("Tes Koneksi...");
   delay(1000);  
@@ -51,19 +51,19 @@ void loop() {
   if (data.length()>0) {
     Serial.println(data);
     if (data == "STATUS"){
-      if (jarak > 30) {
+      if (jarak > 50) {
         mySerial.print("Jarak Air : "); 
         mySerial.print(jarak);
         mySerial.print(" cm, Status AMAN");
         delay(500);
       }
-      else if ((jarak > 20)&&(jarak <= 30)){
+      else if ((jarak > 30)&&(jarak <= 50)){
         mySerial.print("Jarak Air : "); 
         mySerial.print(jarak);
         mySerial.print(" cm, Status WASPADA");
         delay(500);
       }
-      else if ((jarak > 10)&&(jarak <= 20)){
+      else if ((jarak > 10)&&(jarak <= 30)){
         mySerial.print("Jarak Air : "); 
         mySerial.print(jarak);
         mySerial.print(" cm, Status AWAS");
@@ -92,17 +92,17 @@ void loop() {
    lcd.setCursor(11,0);
    lcd.print(jarak);
    lcd.print("cm  ");
-  if (jarak > 30) {
+  if (jarak > 50) {
     delay(100);
      lcd.setCursor(8,1);
      lcd.print("Aman    ");
   }
-  else if ((jarak > 20)&&(jarak <= 30)){
+  else if ((jarak > 30)&&(jarak <= 50)){
     delay(100);
      lcd.setCursor(8,1);
      lcd.print("Waspada ");
   }
-  else if ((jarak > 10)&&(jarak <= 20)){
+  else if ((jarak > 10)&&(jarak <= 30)){
     delay(100);
      lcd.setCursor(8,1);
      lcd.print("Awas!   ");  
